@@ -1,0 +1,40 @@
+<template>
+  <b-container v-if="houses && houses.length != 0" class="list bv-example-row mt-3">
+    <house-list-item v-for="(house, index) in houses" :key="index" :house="house" />
+  </b-container>
+  <b-container v-else class="bv-example-row mt-3">
+    <b-row>
+      <b-col
+        ><b-alert show variant="light" class="text-center">주택 목록이 없습니다.</b-alert></b-col
+      >
+    </b-row>
+  </b-container>
+</template>
+
+<script>
+import HouseListItem from "@/components/house/HouseListItem";
+import { mapState } from "vuex";
+
+export default {
+  name: "HouseList",
+  components: {
+    HouseListItem,
+  },
+  data() {
+    return {};
+  },
+  computed: {
+    ...mapState(["houses"]),
+    // houses() {
+    //   return this.$store.state.houses;
+    // },
+  },
+};
+</script>
+
+<style>
+.list {
+  overflow-y: scroll;
+  height: 700px;
+}
+</style>
