@@ -17,18 +17,25 @@ Frontend: Vue.js<br>
 ## ERD
 ![이미지](https://user-images.githubusercontent.com/44861558/220049822-2924788c-56f8-4943-a603-7f89dbb4453d.PNG)
 
+
 ## 주요 기능
 
-![이미지](/exec/img/finalproject_video.mp4)
+### 지역별 검색
+![이미지](/exec/img/search_local.gif)
+
+### 아파트 검색
+![이미지](/exec/img/search_apart.gif)
+
+### 부동산 뉴스 조회
+![이미지](/exec/img/news.gif)
+
+### 공지사항, Q&A 게시판
+![이미지](/exec/img/board.gif)
 
 
+### 관심 목록
+![이미지](/exec/img/like_list.gif)
 
 
-
-
-
-
-
-
-
-
+### 마이페이지
+![이미지](/exec/img/mypage.gif)
