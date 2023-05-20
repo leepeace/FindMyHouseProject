@@ -1,0 +1,1 @@
+alter table qna modify content varchar(1000);

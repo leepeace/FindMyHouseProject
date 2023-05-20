@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ssafy.info.model.mapper.InfoMapper">
+
+	<!-- 유저 관심지역 등록하기 -->
+	<insert id="registArea" parameterType="map">
+		insert into favorite_dong
+		values (#{dongCode},#{user_id})
+	</insert>
+	
+	<select id="getClinicInfo" parameterType="String" resultType="ClinicDto">
+		select distinct sc.*
+		from screeningcenter sc, dong d
+		where sc.city_gun_borough = d.si_name and left(h.dongcode,5) = #{gugun}
+	</select>
+	
+	<!-- 상권정보 가져오기  -->
+	<select id="getCommercialInfo" resultType="CommercialDto">
+		select distinct sc.address, sc.*
+		from surrounding_commercial sc, baseaddress d
+		where sc.gun_borough = d.gugunName and sc.store_type_name_detail="편의점"
+	</select>
+	
+	<select id="getHospitalInfo" parameterType="String" resultType="HospitalDto">
+		select distinct sh.*
+		from safe_hospital sh, dong d
+		where sh.city_gun_borough = d.si_name and d.si_code = #{gugun}
+	</select>
+	
+	<!-- 유저 관심지역 가져오기 -->
+	<select id="favorite" parameterType="String" resultType="SidoGugunCodeDto">
+		select *
+		from baseaddress d, favorite_dong fd
+		where fd.user_id = #{userId} and d.dongCode = fd.dongCode
+	</select>
+	
+	<!-- 관심지역인지 아닌지 체크 -->
+	<select id="checkfavorite" parameterType="map" resultType="int">
+		select count(*)
+		from favorite_dong fd
+        join baseaddress d
+        on fd.dongCode = d.dongCode
+        where fd.user_id = #{user_id}
+		and fd.dongCode = #{dongCode};
+	</select>
+	
+	<!-- 북마크 여부 체크 -->
+	<select id="checkbookmark" parameterType="map" resultType="int">
+		select count(*)
+		from favorite_apt fa
+        join houseinfo hi
+        on fa.aptCode = hi.aptCode
+        where fa.user_id = #{user_id}
+		and fa.aptCode = #{aptCode};
+	</select>
+	
+	<!-- 내 북마크 리스트 -->
+	<select id="mybookmark" parameterType="String" resultType="houseInfoDto">
+		select *, (select count(*) from favorite_apt where favorite_apt.aptCode = hi.aptCode) bookmark
+		from favorite_apt fa
+        join houseinfo hi
+        on fa.aptCode = hi.aptCode
+        join baseaddress bd
+        on bd.dongCode = hi.dongCode
+        where fa.user_id = #{user_id}
+	</select>
+	
+	<!-- 북마크 설정 -->
+	<insert id="insertbookmark" parameterType="map">
+		insert into favorite_apt
+		values (#{aptCode},#{user_id})
+	</insert>
+	
+	<!-- 북마크 해제 -->
+	<delete id="deletebookmark" parameterType="map">
+		delete from favorite_apt where aptCode=#{aptCode} and user_id=#{user_id}
+	</delete>
+	
+	<!-- 동별 추천리스트 들고오기  -->
+	<select id="getRecommendhouse" parameterType="map" resultType="HouseInfoDto">
+		SELECT distinct(aptName), lat, lng, aptCode, sidoName, gugunName, dongName, fa.dongCode,buildyear, jibun,(select AVG(score) from comments where comments.apt_code = hi.aptCode) scoreAvg, 
+		(select COUNT(*) from favorite_apt where favorite_apt.aptCode = hi.aptCode) bookmark
+		FROM favorite_dong fa
+		join members m 
+		on fa.user_id = m.user_id
+		join houseinfo hi
+		on hi.dongCode = fa.dongCode
+		join sidocode si
+		on left(hi.dongcode,2) = left(si.sidocode,2)
+		join guguncode gu
+		on left(hi.dongcode,5) = left(gu.guguncode,5)
+		where fa.dongCode = #{dongCode} and m.age=#{age}
+		order by scoreAvg desc, bookmark desc
+	</select>
+	
+	<select id="getAccommodationDtoInfo" parameterType="String" resultType="AccomodationDto">
+		select distinct a.*
+		from accommodation a, dong d
+		where a.bub_code = d.bub_code and d.si_code = #{gugun}
+		limit 50
+	</select>
+	
+	<!-- 관심지역 해제 -->
+	<delete id="deletefavorite" parameterType="map">
+		delete from favorite_dong where dongCode=#{dongCode} and user_id=#{user_id}
+	</delete>
+	
+	
+
+</mapper>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ssafy.qna.model.mapper.QnaMapper">
+
+	<resultMap type="qnaDto" id="qna">
+		<result column="qna_no" property="qnaNo" />
+		<result column="user_id" property="userId" />
+		<result column="subject" property="subject" />
+		<result column="content" property="content" />
+		<result column="hit" property="hit" />
+		<result column="register_time" property="registerTime" />
+	</resultMap>
+
+	<resultMap type="replyDto" id="reply">
+		<result column="reply_no" property="replyNo" />
+		<result column="qna_no" property="qnaNo" />
+		<result column="user_id" property="userId" />
+		<result column="user_name" property="userName" />
+		<result column="subject" property="subject" />
+		<result column="content" property="content" />
+		<result column="hit" property="hit" />
+		<result column="register_time" property="registerTime" />
+	</resultMap>
+
+	<!-- 키워드로 게시글 검색  -->
+	<sql id="searchKeyWord">
+		<if test="word != null and word != ''">
+			<if test="key == 'subject'">
+				subject like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'content'">
+				 content = like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'userId'">
+				 user_id = like concat('%', #{word}, '%')
+			</if>
+		</if>
+	</sql>
+
+	<insert id="writeQna" parameterType="QnaDto">
+		insert into qna (user_id, subject, content, hit, register_time)
+		values (#{userId}, #{subject}, #{content}, 0, now())
+	</insert>
+
+	<select id="listQna" resultMap="qna" parameterType="map">
+		select *
+		from qna
+		<where>
+			<include refid="searchKeyWord"></include>
+		</where>
+		order by qna_no asc
+		limit #{start}, #{amount}
+	</select>
+
+	<select id="getQna" parameterType="int" resultMap="qna">
+		select qna_no, user_id, subject, content, hit, register_time
+		from qna
+		where qna_no = #{qnaNo}
+	</select>
+
+	<!-- 조회수 증가 -->
+	<update id="updateHit" parameterType="int">
+		update qna
+		set hit = hit + 1
+		where qna_no = #{qnaNo}
+	</update>
+
+
+	<!-- 수정 -->
+	<update id="modifyQna" parameterType="QnaDto">
+		update qna
+		set subject = #{subject}, content = #{content}
+		where qna_no = #{qnaNo}
+	</update>
+
+
+	<!-- 삭제 -->
+	<delete id="deleteQna" parameterType="int">
+		delete from qna
+		where qna_no = #{qnaNo}
+	</delete>
+
+	<!-- 카운팅 -->
+	<select id="totalQnaCount" resultType="int">
+		select count(*)
+		from qna
+	</select>
+
+	<!-- 검색 -->
+	<select id="searchQna" parameterType="map" resultMap="qna">
+		select qna_no, user_id, subject, content, hit, register_time
+		from qna
+		<if test="word != null and word != ''">
+			<if test="key == 'subject'">
+				where subject like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'content'">
+				where content = like concat('%', #{word}, '%')
+			</if>
+			<if test="key == 'userId'">
+				where user_id = like concat('%', #{word}, '%')
+			</if>
+		</if>
+	</select>
+
+
+	<!-- 답변달기 -->
+	<insert id="writeReply" parameterType="ReplyDto">
+		insert into reply (user_id, content, qna_no, register_time)
+		values (#{userId}, #{content}, #{qnaNo}, now())
+	</insert>
+
+	<!-- 답변조회 -->
+	<select id="getReply" parameterType="int" resultMap="reply">
+		select *
+		from reply
+		where qna_no = #{qnaNo}
+	</select>
+
+	<!-- 답변수정 -->
+	<update id="modifyReply" parameterType="ReplyDto">
+		update reply
+		set content = #{content}
+		where reply_no = #{replyNo}
+	</update>
+
+
+	<!-- 답변삭제 -->
+	<delete id="deleteReply" parameterType="int">
+		delete from reply
+		where reply_no = #{replyNo}
+	</delete>
+
+
+</mapper>

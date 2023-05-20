@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.apt.model.mapper.AptMapper">
+
+	<insert id="regist" parameterType="AptDto">
+		insert into apart(build_year, dong, name, area, jibun, regional_code)
+		values(#{build_year}, #{dong}, #{name}, #{area}, #{jibun}, #{regional_code})
+	</insert>
+	
+	<select id="search" parameterType="map" resultType="AptSearchDto">
+		select *
+		from apart a join trade t on (a.id = t.apart_id)
+		<where>
+		
+			<if test="dong != '동선택'">
+				a.dong like concat('%', #{dong},'%') and
+			</if>
+			
+			<if test="gubun == 2">
+				a.name like concat('%', #{aptName},'%') and
+			</if>
+
+			a.regional_code = #{gugun} and t.deal_year = #{year} and t.deal_month = #{month}
+		 
+		</where>
+	</select>
+
+	<update id="updateTrade" parameterType="TradeDto">
+		update trade
+		set deal_amount = #{dealAmount}
+		where id = #{id}
+	</update>
+
+	<delete id="deleteTrade" parameterType="int">
+		delete
+		from trade
+		where id = #{trade_id}
+	</delete>
+	
+	<select id="getSido" resultType="sidoGugunCodeDto">
+		select left(sidoCode,2) sidoCode, sidoName
+		from sidocode
+		order by sidoCode
+	</select>
+	
+	<select id="getGugunInSido" parameterType="string" resultType="sidoGugunCodeDto">
+		select left(gugunCode,5) gugunCode, gugunName
+		from guguncode
+		where left(gugunCode,2) = #{sido}
+		order by gugunCode
+	</select>
+	
+	<select id="getDongInGugun" parameterType="string" resultType="houseInfoDto">
+		select distinct dongName, dongCode
+		from baseaddress
+		where left(dongCode, 5) = #{gugun}
+		order by dongName
+	</select>
+	
+	<!-- 지역별 검색  -->
+	<select id="getAptInDong" parameterType="string" resultType="houseInfoDto">
+        select h.aptCode, h.aptName, h.buildyear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice,
+				(select count(*) from favorite_apt fa where fa.aptCode = h.aptCode) bookmark
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		where dongCode = #{dong} 
+
+	</select>
+	
+	<select id="getHouseDeal" parameterType="String" resultType="TradeDto">
+		select *, (select round(avg(replace(dealAmount, ',' ,''))) from housedeal where housedeal.aptCode = #{aptCode}) as dealAvg
+		from houseinfo h
+		left join housedeal d
+		on h.aptCode = d.aptCode
+		where h.aptCode = #{aptCode}
+		order by dealYear,dealMonth desc 
+	</select>
+	
+	<!-- 아파트명으로 검색  -->
+	<select id="searchApt" parameterType="string" resultType="houseInfoDto">
+        select h.aptCode, h.aptName, h.buildyear, h.dongCode, h.dongName, h.jibun, h.lat, h.lng, si.sidoname, gu.gugunname,
+				(select dealAmount from housedeal where aptCode = h.aptCode and no = (select max(no) from housedeal where aptCode = h.aptCode)) recentPrice,
+				(select count(*) from favorite_apt fa where fa.aptCode = h.aptCode) bookmark
+		from houseinfo h
+		left join sidocode si
+		on left(h.dongcode,2) = left(si.sidocode,2)
+		left join guguncode gu
+		on left(h.dongcode,5) = left(gu.guguncode,5)
+		where aptName like concat('%', #{aptName},'%')
+
+	</select>
+	
+	
+	
+
+</mapper>

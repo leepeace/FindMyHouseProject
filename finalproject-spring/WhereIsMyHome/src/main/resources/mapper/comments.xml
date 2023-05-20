@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.comment.model.mapper.CommentMapper">
+
+	<resultMap type="CommentDto" id="comment">
+		<result column="comments_idx" property="commentIdx" />
+		<result column="score" property="score" />
+		<result column="content" property="content" />
+		<result column="user_id" property="userId" />
+		<result column="regist_time" property="registerTime" />
+		<result column="apt_code" property="aptCode" />
+		<result column="aptName" property="aptName"/>
+	</resultMap>
+
+	<!-- comment 등록 -->
+	<insert id="registComment" parameterType="CommentDto">
+		insert into
+		comments(score, content, regist_time, user_id, apt_code)
+		values( #{score}, #{content}, now(), #{userId}, #{aptCode})
+	</insert>
+
+	<!-- comment 삭제 -->
+	<delete id="deleteComment">
+		delete from comments
+		where comments_idx=#{commentIdx}
+	</delete>
+
+	<!-- comment 목록 -->
+	<select id="getList" parameterType="map" resultMap="comment">
+		select *, (select AVG(score) from comments where apt_code=#{aptCode}) AVG
+		from comments
+		where apt_code=#{aptCode}
+		order by comments_idx asc
+	</select>
+
+	<!-- 사용자가 등록한 comment를 가져옴 -->
+	<select id="getUserComment" resultMap="comment"
+		parameterType="map">
+		select *
+		from comments
+		inner join houseinfo
+		on comments.apt_code=houseinfo.aptCode
+		where comments.user_id=#{userId}
+	</select>
+
+</mapper>
